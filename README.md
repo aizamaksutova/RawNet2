@@ -29,6 +29,6 @@ In order to train the model you would need to perform simple steps, but wait for
 ```
 chmod a+x prepare_data.sh
 ./prepare_data.sh
-python3 prepare_pitch-energy.py
+python3 prepare_pitch_energy.py
 
 ```
