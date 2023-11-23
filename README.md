@@ -17,9 +17,8 @@ First, you should create a file (e.g. texts.txt) with all the phrases you want t
 Then perform these:
 
 ```
-#downloading all the needed models
 chmod a+x prepare_inf.sh
-./prepare_inf.sh
+./prepare_inf.sh   #downloading all the needed models
 python3 test.py -c config.json -r final_model.pth -f inference.txt
 ```
 Afterwards, you will see the results in the results/ directory
@@ -29,6 +28,11 @@ In order to train the model you would need to perform simple steps, but wait for
 ```
 chmod a+x prepare_data.sh
 ./prepare_data.sh
-python3 prepare_pitch_energy.py
-
+python3 prepare_pitch_energy.py #prepare pitch and energy
+python3 train.py -c hw_tts/configs/config.json 
 ```
+
+## Wandb report
+
+Here is the [link](https://api.wandb.ai/links/aamaksutova/v2nxlpn5) to my wandb report with all the architecture explanation and wavs + graphs
+
