@@ -76,7 +76,7 @@
     ],
     "wandb_key": "bea7d429ff5eb305559a5aae301f1b63cd1f70e7",
     "trainer": {
-      "epochs": 220,
+      "epochs": 1000,
       "save_dir": "saved/",
       "save_period": 5,
       "verbosity": 2,
