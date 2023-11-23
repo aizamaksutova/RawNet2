@@ -35,7 +35,7 @@
         "args": {
           "data_path": "./data/train.txt",
           "mel_ground_truth": "./mels",
-          "alignment_path": "./data/alignments",
+          "alignment_path": "./alignments",
           "pitch_path" :"./data/pitch",
           "energy_path" :"./data/energy",
           "batch_expand_size": 32,
