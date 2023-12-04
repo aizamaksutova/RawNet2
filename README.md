@@ -22,6 +22,13 @@ python3 test.py -c config.json -r checkpoint.pth -t inference_data -o output --d
 -t inference_data is a directory where your samples are stored and output is a directory where the output results will be stored. 
 Additionaly, if you want to change the mel-spec config, then go to Vocoder/melspec
 
+For inferencing my model exactly you should do these steps:
+```
+python3 data.py
+python3 test.py -c config.json -r checkpoint-epoch17.pth -t inference_data -o output --device='cuda'
+```
+You can look at the results in the output dir
+
 ## How to train the model by yourself?
 In order to train the model you would need to perform simple steps, but wait for a long time for them to actually download all the data which is a LjDataset
 
