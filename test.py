@@ -4,24 +4,24 @@ import os
 from pathlib import Path
 
 import torch
+import torchaudio
 from tqdm import tqdm
 
-import hw_tts.synth.synth as synthesis
-import hw_tts.model as module_model
-from hw_tts.waveglow import get_WaveGlow
-from hw_tts.utils import ROOT_PATH
-import hw_tts.text as text
-from hw_tts.utils.parse_config import ConfigParser
+import vocoder.model as module_model
+from vocoder.trainer import Trainer
+from vocoder.utils import ROOT_PATH
+from vocoder.utils.parse_config import ConfigParser
+from vocoder.melspec import MelSpectrogram, MelSpectrogramConfig
+
 
 DEFAULT_CHECKPOINT_PATH = ROOT_PATH / "default_test_model" / "checkpoint.pth"
 
 
-def main(config):
+def main(config, test_dir, output_dir, device):
     logger = config.get_logger("test")
 
     # define cpu or gpu if possible
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
+    device = torch.device(device)
     # build model architecture
     model = config.init_obj(config["arch"], module_model)
     logger.info(model)
@@ -34,53 +34,25 @@ def main(config):
     model.load_state_dict(state_dict)
 
     # prepare model for testing
+    logger.info(f"Device {device}")
     model = model.to(device)
-    waveglow_model = get_WaveGlow().to(device)
     model.eval()
+    model.generator.remove_normalization()
 
-    # you can pass your test data as list of str
+    os.makedirs(output_dir, exist_ok=True)
+    test_dir = Path(test_dir)
+    output_dir = Path(output_dir)
 
-    test_data = []
-    if args.text is not None:
-        test_data.append(args.text)
-    if args.file is not None:
-        with open(args.file) as f:
-            for test in f.readlines():
-                test_data.append(test)
+    sampling_rate = 22050
+    mel_spec_config = MelSpectrogramConfig()
+    mel_spec_transform = MelSpectrogram(mel_spec_config).to(device)
 
-    test_data = list(text.text_to_sequence(test, ['english_cleaners']) for test in test_data)
-
-
-    os.makedirs("results", exist_ok=True)
     with torch.no_grad():
-        for i, phn in tqdm(enumerate(test_data)):
-            synthesis.synth(model, device, waveglow_model, phn, path=f"results/wav_{i}_based.wav")
-
-            # speed changes
-            synthesis.synth(model, device, waveglow_model, phn, alpha=0.8,
-                                          path=f"results/wav_{i}_speed=0_8.wav")
-            synthesis.synth(model, device, waveglow_model, phn, alpha=1.2,
-                                          path=f"results/wav_{i}_speed=1_2.wav")
-
-            # energy changes
-            synthesis.synth(model, device, waveglow_model, phn, e_alpha=0.8,
-                                          path=f"results/wav_{i}_energy=0_8.wav")
-            synthesis.synth(model, device, waveglow_model, phn, e_alpha=1.2,
-                                          path=f"results/wav_{i}_energy=1_2.wav")
-
-            # pitch changes
-            synthesis.synth(model, device, waveglow_model, phn, p_alpha=0.8,
-                                          path=f"results/wav_{i}_pitch=0_8.wav")
-            synthesis.synth(model, device, waveglow_model, phn, p_alpha=1.2,
-                                          path=f"results/wav_{i}_pitch=1_2.wav")
-
-            # all together changes
-            synthesis.synth(model, device, waveglow_model, phn,
-                                          p_alpha=0.8, e_alpha=0.8, alpha=0.8,
-                                          path=f"results/wav_{i}_together=0_8.wav")
-            synthesis.synth(model, device, waveglow_model, phn,
-                                          p_alpha=1.2, e_alpha=1.2, alpha=1.2,
-                                          path=f"results/wav_{i}_together=1_2.wav")
+        for wav_path in tqdm(test_dir.iterdir(), "Processing wavs"):
+            wav = torchaudio.load(wav_path)[0].to(device)
+            mel_spec = mel_spec_transform(wav)
+            wav_pred = model.generator(mel_spec).squeeze(0).cpu()
+            torchaudio.save(output_dir / wav_path.name, wav_pred, sample_rate=sampling_rate)
 
 
 if __name__ == "__main__":
@@ -106,32 +78,34 @@ if __name__ == "__main__":
         type=str,
         help="indices of GPUs to enable (default: all)",
     )
-
-    args.add_argument(
-        "-f",
-        "--file",
-        default=None,
-        type=str,
-        help="the path to the file with texts for synthesis",
-    )
     args.add_argument(
         "-t",
-        "--text",
-        default=None,
+        "--inference-dir",
+        default="test_audio",
         type=str,
-        help="text for synthesis",
+        help="Directory with test audio wav files",
     )
-
+    args.add_argument(
+        "-o",
+        "--output-dir",
+        default="output",
+        type=str,
+        help="Output directory",
+    )
+    args.add_argument(
+        "-j",
+        "--jobs",
+        default=1,
+        type=int,
+        help="Number of workers for test dataloader",
+    )
 
     args = args.parse_args()
 
-    # set GPUs
-    if args.device is not None:
-        os.environ["CUDA_VISIBLE_DEVICES"] = args.device
-
     # first, we need to obtain config with model parameters
     # we assume it is located with checkpoint in the same folder
-    model_config = Path(args.resume).parent / "config.json"
+    # model_config = Path(args.resume).parent / "config_server.json"
+    model_config = Path(args.config)
     with model_config.open() as f:
         config = ConfigParser(json.load(f), resume=args.resume)
 
@@ -140,5 +114,5 @@ if __name__ == "__main__":
         with Path(args.config).open() as f:
             config.config.update(json.load(f))
 
-    main(config)
+    main(config, args.inference_dir, args.output_dir, args.device)
     

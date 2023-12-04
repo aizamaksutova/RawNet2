@@ -1,101 +1,97 @@
 {
-    "name": "default_config",
-    "n_gpu": 1,
-    "arch": {
-        "type": "FastSpeech2",
-        "args": {
-            "vocab_size": 300,
-            "max_seq_len": 3000,
-            "encoder_dim": 256,
-            "encoder_n_layer": 4,
-            "encoder_head": 2,
-            "encoder_conv1d_filter_sz": 1024,
-            "decoder_dim": 256,
-            "decoder_n_layer": 4,
-            "decoder_head": 2,
-            "decoder_conv1d_filter_sz": 1024,
-            "fft_conv1d_kernel": [
-                9,
-                1
-            ],
-            "fft_conv1d_padding": [
-                4,
-                0
-            ],
-            "duration_predictor_filter_sz": 256,
-            "duration_predictor_kernel_sz": 3,
-            "dropout": 0.1,
-            "PAD": 0,
-            "num_mels": 80,
-            "num_bins": 256,
-            "pitch_stat": [
-                59.913448819015024,
-                887.2688230720693
-            ],
-            "energy_stat": [
-                15.023643,
-                91.4197
-            ]
-        }
-    },
-    "data": {
-        "batch_size": 16,
-        "batch_expand_size": 32,
-        "num_workers": 5,
-        "dataset": {
-            "type": "LjDataset",
-            "args": {
-                "data_path": "./data/train.txt",
-                "mel_ground_truth": "./mels",
-                "alignment_path": "./data/alignments",
-                "pitch_path": "./data/pitch",
-                "energy_path": "./data/energy",
-                "batch_expand_size": 32,
-                "text_cleaners": [
-                    "english_cleaners"
-                ]
-            },
-            "module": "hw_tts.datasets"
-        }
-    },
-    "optimizer": {
-        "type": "AdamW",
-        "args": {
-            "lr": 0.001,
-            "weight_decay": 1e-06,
-            "betas": [
-                0.9,
-                0.98
-            ],
-            "eps": 1e-09
-        }
-    },
-    "loss": {
-        "type": "FastSpeechLoss",
-        "args": {}
-    },
-    "lr_scheduler": {
-        "type": "OneCycleLR",
-        "args": {
-            "steps_per_epoch": 320,
-            "epochs": 220,
-            "anneal_strategy": "cos",
-            "max_lr": 0.001,
-            "pct_start": 0.1
-        }
-    },
-    "metrics": [],
-    "wandb_key": "bea7d429ff5eb305559a5aae301f1b63cd1f70e7",
-    "trainer": {
-        "epochs": 220,
-        "save_dir": "saved/",
-        "save_period": 5,
-        "verbosity": 2,
-        "early_stop": 100,
-        "visualize": "wandb",
-        "wandb_project": "tts_project",
-        "len_epoch": 20,
-        "grad_norm_clip": 1,
-        "waveglow_path": "hw_tts/waveglow/pretrained_model/waveglow_256channels.pt"
+  "name": "train_config",
+  "n_gpu": 1,
+  "arch": {
+    "type": "HiFiGAN",
+    "args": {
+      "generator_config": {
+        "in_channels": 80,
+        "hidden_dimension": 512,
+        "conv_kernel_sz": [16, 16, 4, 4],
+        "mrf_kernel_sz": [3, 7, 11],
+        "mrf_dilations": [
+          [[1, 1], [3, 1], [5, 1]],
+          [[1, 1], [3, 1], [5, 1]],
+          [[1, 1], [3, 1], [5, 1]]
+        ]
+      },
+      "mpd_config": {
+        "periods": [2, 3, 5, 7, 11],
+        "kernel_size": 5,
+        "stride": 3,
+        "channels": [32, 128, 512, 1024]
+      },
+      "msd_config": {
+        "factors": [1, 2, 4],
+        "kernel_sizes": [15, 41, 41, 41, 41, 41, 5],
+        "strides": [1, 2, 2, 4, 4, 1, 1],
+        "groups": [1, 4, 16, 16, 16, 16, 1],
+        "channels": [128, 128, 256, 512, 1024, 1024, 1024]
+      }
     }
+  },
+  "data": {
+    "train": {
+      "batch_size": 7,
+      "num_workers": 5,
+      "datasets": [
+        {
+          "type": "LjDataset",
+          "args": {
+            "data_path": "data/LJSpeech-1.1/wavs",
+            "wav_max_len": 22272
+          }
+        }
+      ]
+    }
+  },
+  "optimizer_d": {
+    "type": "AdamW",
+    "args": {
+      "lr": 2e-4,
+      "betas": [0.8, 0.99],
+      "weight_decay": 0.01
+    }
+  },
+  "optimizer_g": {
+    "type": "AdamW",
+    "args": {
+      "lr": 2e-4,
+      "betas": [0.8, 0.99],
+      "weight_decay": 0.01
+    }
+  },
+  "lr_scheduler_d": {
+    "type": "ExponentialLR",
+    "args": {
+      "gamma": 0.9
+    }
+  },
+  "lr_scheduler_g": {
+    "type": "ExponentialLR",
+    "args": {
+      "gamma": 0.9
+    }
+  },
+  "loss": {
+    "type": "HiFiGANLoss",
+    "args": {
+      "mel_spectrogram_multiplier": 45,
+      "feature_matching_multiplier": 2
+    }
+  },
+  "metrics": [],
+  "trainer": {
+    "epochs": 10000,
+    "save_dir": "saved/",
+    "save_period": 10,
+    "verbosity": 2,
+    "monitor": "min val_loss",
+    "early_stop": 500,
+    "visualize": "wandb",
+    "wandb_project": "vocoder",
+    "wandb_run_name": "first real train run",
+    "len_epoch": 1000,
+    "grad_norm_clip": 1000
+  }
 }
