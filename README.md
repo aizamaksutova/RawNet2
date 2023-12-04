@@ -1,38 +1,39 @@
-# FastSpeech2
-Project on text-to-speech. This rep contains my implementation of FastSpeech2 model and all the steps to reimplement the pipeline
+# HiFiGAN
+Project on GAN-based model capable of generating high fidelity speech. This rep contains my implementation of HiFiGAN model and all the steps to reimplement the pipeline
 
 ## How to install?
 
 Make sure to follow this guide
 ```
-git clone https://github.com/aizamaksutova/FastSpeech2.git
-cd FastSpeech2
+git clone https://github.com/aizamaksutova/Vocoder.git
+cd Vocoder
 pip install -r requirements.txt
 ```
 
 ## How to inference?
 
-First, you should create a file (e.g. texts.txt) with all the phrases you want to reproduce as wavs. The format of .txt file is the same as the file inference.txt
+First, you should create a file (e.g. samples.wav) with all the phrases you want to reproduce.
 
 Then perform these:
 
 ```
-chmod a+x prepare_inf.sh
-./prepare_inf.sh   #downloading all the needed models
-python3 test.py -c config.json -r final_model.pth -f inference.txt
+python3 test.py -c config.json -r checkpoint.pth -t inference_data -o output --device='gpu'
 ```
-Afterwards, you will see the results in the results/ directory
+-t inference_data is a directory where your samples are stored and output is a directory where the output results will be stored. 
+Additionaly, if you want to change the mel-spec config, then go to Vocoder/melspec
+
 ## How to train the model by yourself?
-In order to train the model you would need to perform simple steps, but wait for a long time for them to actually download all the data + manually perform all the pitch and energy in advance
+In order to train the model you would need to perform simple steps, but wait for a long time for them to actually download all the data which is a LjDataset
 
 ```
 chmod a+x prepare_data.sh
 ./prepare_data.sh
-python3 prepare_pitch_energy.py #prepare pitch and energy
-python3 train.py -c hw_tts/configs/config.json 
+python3 train.py -c config.json -k wandb_key
 ```
+All the other parameters are manually stored in the config.json, but you can look up the config options in train.py in order to change everything right from terminal.
+
 
 ## Wandb report
 
-Here is the [link](https://api.wandb.ai/links/aamaksutova/v2nxlpn5) to my wandb report with all the architecture explanation and wavs + graphs
+Here is the [link](https://wandb.ai/aamaksutova/vocoder/reports/HifiGan-project-report--Vmlldzo2MTY0NDAw?accessToken=us6u702jtkujv3cbpzyra31h96to29an4ffbbp5yo99q87ywtoii2ffrvql6lpsj) to my wandb report with all the architecture explanation and wavs + graphs
 
