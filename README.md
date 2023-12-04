@@ -17,7 +17,7 @@ First, you should create a file (e.g. samples.wav) with all the phrases you want
 Then perform these:
 
 ```
-python3 test.py -c config.json -r checkpoint.pth -t inference_data -o output --device='gpu'
+python3 test.py -c config.json -r checkpoint.pth -t inference_data -o output --device='cuda'
 ```
 -t inference_data is a directory where your samples are stored and output is a directory where the output results will be stored. 
 Additionaly, if you want to change the mel-spec config, then go to Vocoder/melspec
