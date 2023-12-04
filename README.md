@@ -25,7 +25,7 @@ Additionaly, if you want to change the mel-spec config, then go to Vocoder/melsp
 For inferencing my model exactly you should do these steps:
 ```
 python3 data.py
-python3 test.py -c config.json -r checkpoint-epoch17.pth -t inference_data -o output --device='cuda'
+python3 test.py -c config.json -r model_best.pth -t inference_data -o output --device='cuda'
 ```
 You can look at the results in the output dir
 
