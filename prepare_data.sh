@@ -9,5 +9,3 @@ mkdir data
 mv asvpoof-2019-dataset.zip data/
 unzip data/asvpoof-2019-dataset.zip
 
-mv LA data/
-mv PA data/
