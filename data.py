@@ -1,6 +1,6 @@
 import gdown
 
 # a checkpoint
-id_model = "1QQ5QP8gZa0Jwaur_JbHmvVW5gsBn3qbw"
-output_model = "model_best.pth"
+id_model = "1Y8VzCW1hyDLBmI41ze0SaZJppC16TgGk"
+output_model = "rawnet_model.pth"
 gdown.download(id=id_model, output=output_model, quiet=False)
