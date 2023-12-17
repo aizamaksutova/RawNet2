@@ -18,3 +18,5 @@ kenlm
 pyworld
 unidecode
 inflect
+kaggle
+pynvml

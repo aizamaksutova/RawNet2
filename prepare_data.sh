@@ -1,11 +1,13 @@
-# #download LjSpeech
-wget https://data.keithito.com/data/speech/LJSpeech-1.1.tar.bz2 -o /dev/null
-mkdir data
-tar -xvf LJSpeech-1.1.tar.bz2 >> /dev/null
-mv LJSpeech-1.1 data/LJSpeech-1.1
-echo "done 1"
-rm LJSpeech-1.1.tar.bz2
+mv kaggle.json ~/.kaggle/kaggle.json
+chmod 600 ~/.kaggle/kaggle.json
 
-gdown https://drive.google.com/u/0/uc?id=1-EdH0t0loc6vPiuVtXdhsDtzygWNSNZx
-mv train.txt data/
-echo "done 2"
+export PATH=/users/aizam/.local/bin${PATH:+:${PATH}}
+
+kaggle datasets download awsaf49/asvpoof-2019-dataset/
+
+mkdir data
+mv asvpoof-2019-dataset.zip data/
+unzip data/asvpoof-2019-dataset.zip
+
+mv LA data/
+mv PA data/
